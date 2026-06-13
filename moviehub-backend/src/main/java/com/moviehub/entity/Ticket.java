@@ -32,11 +32,11 @@ public class Ticket extends BaseEntity {
 
     private LocalDateTime validUntil;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "show_seat_id")
     private ShowSeat showSeat;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "booking_id")
     private Booking booking;
 }

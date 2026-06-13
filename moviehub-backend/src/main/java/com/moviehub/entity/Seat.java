@@ -25,7 +25,7 @@ public class Seat extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private SeatType seatType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "screen_id", nullable = false)
     private Screen screen;
 }
