@@ -20,142 +20,175 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
 
-    private final BookingRepository bookingRepository;
-    private final BookingSeatRepository bookingSeatRepository;
-    private final UserRepository userRepository;
-    private final ShowRepository showRepository;
-    private final ShowSeatRepository showSeatRepository;
+        private final BookingRepository bookingRepository;
+        private final BookingSeatRepository bookingSeatRepository;
+        private final UserRepository userRepository;
+        private final ShowRepository showRepository;
+        private final ShowSeatRepository showSeatRepository;
 
-    @Override
-    public BookingResponse createBooking(
-            BookingRequest request) {
+        @Override
+        public BookingResponse createBooking(
+                        BookingRequest request) {
 
-        User user = userRepository.findById(
-                request.getUserId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "User not found"));
+                System.out.println("================================");
+                System.out.println("User Id: " + request.getUserId());
+                System.out.println("Show Id: " + request.getShowId());
+                System.out.println("Show Seat Ids: " + request.getShowSeatIds());
+                System.out.println("================================");
 
-        Show show = showRepository.findById(
-                request.getShowId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Show not found"));
+                User user = userRepository.findById(
+                                request.getUserId())
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "User not found"));
 
-        List<ShowSeat> selectedSeats =
-                showSeatRepository.findAllById(
-                        request.getShowSeatIds());
+                Show show = showRepository.findById(
+                                request.getShowId())
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Show not found"));
 
-        for (ShowSeat seat : selectedSeats) {
+                List<ShowSeat> selectedSeats = showSeatRepository.findAllById(
+                                request.getShowSeatIds());
 
-            if (seat.getStatus() != SeatStatus.AVAILABLE) {
+                System.out.println("Fetched Seats:");
 
-                throw new RuntimeException(
-                        "Seat already booked: "
-                                + seat.getId());
-            }
-        }
+                for (ShowSeat seat : selectedSeats) {
 
-        BigDecimal totalAmount = selectedSeats.stream()
-                .map(ShowSeat::getPrice)
-                .reduce(BigDecimal.ZERO,
-                        BigDecimal::add);
+                        System.out.println(
+                                        "Seat ID = "
+                                                        + seat.getId()
+                                                        + " Status = "
+                                                        + seat.getStatus());
 
-        Booking booking = Booking.builder()
-                .bookingNumber(
-                        "BK-" +
-                        UUID.randomUUID()
-                                .toString()
-                                .substring(0, 8))
-                .totalSeats(selectedSeats.size())
-                .totalAmount(totalAmount)
-                .bookingStatus(
-                        BookingStatus.CONFIRMED)
-                .bookingTime(
-                        LocalDateTime.now())
-                .user(user)
-                .show(show)
-                .build();
+                        if (seat.getStatus() != SeatStatus.AVAILABLE) {
 
-        bookingRepository.save(booking);
+                                throw new RuntimeException(
+                                                "Seat already booked: "
+                                                                + seat.getId());
+                        }
+                }
 
-        for (ShowSeat seat : selectedSeats) {
+                BigDecimal totalAmount = selectedSeats.stream()
+                                .map(ShowSeat::getPrice)
+                                .reduce(
+                                                BigDecimal.ZERO,
+                                                BigDecimal::add);
 
-            seat.setStatus(
-                    SeatStatus.BOOKED);
-
-            showSeatRepository.save(seat);
-
-            BookingSeat bookingSeat =
-                    BookingSeat.builder()
-                            .booking(booking)
-                            .showSeat(seat)
-                            .build();
-
-            bookingSeatRepository.save(
-                    bookingSeat);
-        }
-
-        return BookingResponse.builder()
-                .bookingId(booking.getId())
-                .bookingNumber(
-                        booking.getBookingNumber())
-                .totalSeats(
-                        booking.getTotalSeats())
-                .totalAmount(
-                        booking.getTotalAmount())
-                .bookingStatus(
-                        booking.getBookingStatus())
-                .message(
-                        "Booking Successful")
-                .build();
-    }
-
-    @Override
-    public BookingResponse getBookingById(
-            Long bookingId) {
-
-        Booking booking =
-                bookingRepository.findById(
-                        bookingId)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Booking not found"));
-
-        return BookingResponse.builder()
-                .bookingId(booking.getId())
-                .bookingNumber(
-                        booking.getBookingNumber())
-                .totalSeats(
-                        booking.getTotalSeats())
-                .totalAmount(
-                        booking.getTotalAmount())
-                .bookingStatus(
-                        booking.getBookingStatus())
-                .message("Booking Found")
-                .build();
-    }
-
-    @Override
-    public List<BookingResponse> getBookingsByUser(
-            Long userId) {
-
-        return bookingRepository.findByUserId(userId)
-                .stream()
-                .map(booking ->
-                        BookingResponse.builder()
-                                .bookingId(
-                                        booking.getId())
+                Booking booking = Booking.builder()
                                 .bookingNumber(
-                                        booking.getBookingNumber())
-                                .totalSeats(
-                                        booking.getTotalSeats())
-                                .totalAmount(
-                                        booking.getTotalAmount())
+                                                "BK-" +
+                                                                UUID.randomUUID()
+                                                                                .toString()
+                                                                                .substring(0, 8))
+                                .totalSeats(selectedSeats.size())
+                                .totalAmount(totalAmount)
                                 .bookingStatus(
-                                        booking.getBookingStatus())
-                                .message("Success")
-                                .build())
-                .toList();
-    }
+                                                BookingStatus.CONFIRMED)
+                                .bookingTime(
+                                                LocalDateTime.now())
+                                .user(user)
+                                .show(show)
+                                .build();
+
+                bookingRepository.save(booking);
+
+                for (ShowSeat seat : selectedSeats) {
+
+                        seat.setStatus(
+                                        SeatStatus.BOOKED);
+
+                        showSeatRepository.save(seat);
+
+                        BookingSeat bookingSeat = BookingSeat.builder()
+                                        .booking(booking)
+                                        .showSeat(seat)
+                                        .build();
+
+                        bookingSeatRepository.save(
+                                        bookingSeat);
+                }
+
+                return BookingResponse.builder()
+                                .bookingId(
+                                                booking.getId())
+                                .bookingNumber(
+                                                booking.getBookingNumber())
+                                .totalSeats(
+                                                booking.getTotalSeats())
+                                .totalAmount(
+                                                booking.getTotalAmount())
+                                .bookingStatus(
+                                                booking.getBookingStatus())
+                                .message(
+                                                "Booking Successful")
+                                .build();
+        }
+
+        @Override
+        public BookingResponse getBookingById(
+                        Long bookingId) {
+
+                Booking booking = bookingRepository.findById(
+                                bookingId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Booking not found"));
+
+                return BookingResponse.builder()
+                                .bookingId(
+                                                booking.getId())
+                                .bookingNumber(
+                                                booking.getBookingNumber())
+                                .totalSeats(
+                                                booking.getTotalSeats())
+                                .totalAmount(
+                                                booking.getTotalAmount())
+                                .bookingStatus(
+                                                booking.getBookingStatus())
+                                .message(
+                                                "Booking Found")
+                                .build();
+        }
+
+        @Override
+        public List<BookingResponse> getBookingsByUser(
+                        Long userId) {
+
+                return bookingRepository.findByUserId(userId)
+                                .stream()
+                                .map(booking -> BookingResponse.builder()
+                                                .bookingId(
+                                                                booking.getId())
+                                                .bookingNumber(
+                                                                booking.getBookingNumber())
+                                                .totalSeats(
+                                                                booking.getTotalSeats())
+                                                .totalAmount(
+                                                                booking.getTotalAmount())
+                                                .bookingStatus(
+                                                                booking.getBookingStatus())
+                                                .message(
+                                                                "Success")
+                                                .build())
+                                .toList();
+        }
+
+        @Override
+        public List<BookingResponse> getAllBookings() {
+                return bookingRepository.findAll()
+                                .stream()
+                                .map(booking -> BookingResponse.builder()
+                                                .bookingId(
+                                                                booking.getId())
+                                                .bookingNumber(
+                                                                booking.getBookingNumber())
+                                                .totalSeats(
+                                                                booking.getTotalSeats())
+                                                .totalAmount(
+                                                                booking.getTotalAmount())
+                                                .bookingStatus(
+                                                                booking.getBookingStatus())
+                                                .message(
+                                                                "Success")
+                                                .build())
+                                .toList();
+        }
 }

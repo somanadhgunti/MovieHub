@@ -38,4 +38,9 @@ public class BookingController {
         return bookingService.getBookingsByUser(
                 userId);
     }
+
+    @GetMapping
+    public List<BookingResponse> getAllBookings() {
+        return bookingService.getAllBookings();
+    }
 }

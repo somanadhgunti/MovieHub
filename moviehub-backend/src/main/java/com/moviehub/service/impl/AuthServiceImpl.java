@@ -51,6 +51,7 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
 
         return AuthResponse.builder()
+                .id(user.getId())
                 .username(user.getUsername())
                 .role(user.getRole().name())
                 .message("User Registered Successfully")
@@ -82,6 +83,7 @@ public class AuthServiceImpl implements AuthService {
 
         return AuthResponse.builder()
                 .token(token)
+                .id(user.getId())
                 .username(user.getUsername())
                 .role(user.getRole().name())
                 .message("Login Successful")
